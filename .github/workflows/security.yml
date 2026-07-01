@@ -1,0 +1,50 @@
+name: Security Scan
+on: [push, pull_request]
+
+jobs:
+  dependency-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+        continue-on-error: true  # jangan gagalkan pipeline untuk demo
+
+      - name: Check for known vulnerabilities
+        run: |
+          echo "=== Dependency Audit Report ==="
+          npm audit --json | head -50 || true
+          echo "=== End Report ==="
+
+  secret-detection:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history untuk scan semua commit
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true  # untuk demo
+
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - name: Check code quality
+        run: |
+          echo "=== Code Quality Check ==="
+          echo "Checking for console.log in production code..."
+          grep -rn "console.log" --include="*.js" --exclude-dir=node_modules --exclude="*.test.js" || echo "No console.log found"
+          echo ""
+          echo "Checking for TODO/FIXME..."
+          grep -rn "TODO\|FIXME" --include="*.js" --exclude-dir=node_modules || echo "No TODO/FIXME found"
