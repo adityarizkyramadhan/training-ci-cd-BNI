@@ -1,0 +1,76 @@
+name: Production Pipeline
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-artifact
+          path: |
+            server.js
+            sum.js
+            greeting.js
+            package*.json
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm test -- --coverage
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+
+  deploy-staging:
+    needs: test
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifact
+
+      - name: Deploy to staging
+        run: |
+          echo "==============================="
+          echo "  DEPLOYING TO STAGING"
+          echo "==============================="
+          echo "Version: $(node -e \"console.log(require('./package.json').version)\")"
+          echo "Files:"
+          ls -la
+          echo "Deploy to staging: SUCCESS"
+
+  deploy-production:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment: production   # <- ini yang memicu approval gate!
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifact
+
+      - name: Deploy to production
+        run: |
+          echo "==============================="
+          echo "  DEPLOYING TO PRODUCTION"
+          echo "==============================="
+          echo "Version: $(node -e \"console.log(require('./package.json').version)\")"
+          echo "Deploy to production: SUCCESS"
