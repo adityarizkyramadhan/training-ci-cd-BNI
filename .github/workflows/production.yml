@@ -52,7 +52,7 @@ jobs:
           echo "==============================="
           echo "  DEPLOYING TO STAGING"
           echo "==============================="
-          echo "Version: $(node -e \"console.log(require('./package.json').version)\")"
+          echo "Version: $(node -p "require('./package.json').version")"
           echo "Files:"
           ls -la
           echo "Deploy to staging: SUCCESS"
@@ -72,5 +72,5 @@ jobs:
           echo "==============================="
           echo "  DEPLOYING TO PRODUCTION"
           echo "==============================="
-          echo "Version: $(node -e \"console.log(require('./package.json').version)\")"
+          echo "Version: $(node -p "require('./package.json').version")"
           echo "Deploy to production: SUCCESS"
