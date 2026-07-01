@@ -1,0 +1,7 @@
+node_modules
+npm-debug.log
+.github
+coverage
+*.test.js
+.git
+.gitignore

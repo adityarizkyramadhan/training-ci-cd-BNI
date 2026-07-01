@@ -1,0 +1,18 @@
+services:
+  blue:
+    build: .
+    command: ["node", "server-v1.js"]
+
+  green:
+    build: .
+    command: ["node", "server-v2.js"]
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx-bluegreen.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - blue
+      - green

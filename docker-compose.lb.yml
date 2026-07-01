@@ -1,0 +1,29 @@
+services:
+  app1:
+    build: .
+    command: ["node", "server-lb.js"]
+    environment:
+      - INSTANCE=app1
+
+  app2:
+    build: .
+    command: ["node", "server-lb.js"]
+    environment:
+      - INSTANCE=app2
+
+  app3:
+    build: .
+    command: ["node", "server-lb.js"]
+    environment:
+      - INSTANCE=app3
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app1
+      - app2
+      - app3
